@@ -35,4 +35,9 @@ class Token {
     this.line = line;
   }
 
+  @Override
+  public String toString() {
+    return "Token [type=" + type + ", lexeme=" + lexeme + ", literal=" + literal + ", getClass()=" + getClass() + "]";
+  }
+
 }
