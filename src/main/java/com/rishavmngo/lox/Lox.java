@@ -54,7 +54,6 @@ public class Lox {
     for (Token token : tokens) {
       System.out.println(token);
     }
-    // System.out.println(tokens);
   }
 
   private static void runFile(String path) throws IOException {

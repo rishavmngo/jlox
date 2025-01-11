@@ -103,6 +103,17 @@ class Scanner {
         if (match('/')) {
           while (peek() != '\n' && !isAtEnd())
             advance();
+        } else if (match('*')) {
+          while (peek() != '*' && peekNext() != '/' && !isAtEnd())
+            advance();
+          if (peek() == '*' && peekNext() == '/') {
+            advance();
+            advance();
+
+          } else {
+            Lox.error(line, "Can't able to find end of comment");
+
+          }
         } else {
           addToken(SLASH);
         }
