@@ -33,6 +33,14 @@ public class Lox {
     hadError = true;
   }
 
+  static void error(Token token, String message) {
+    if (token.type == TokenType.EOF) {
+      report(token.line, " at end", message);
+    } else {
+      report(token.line, " at '" + token.lexeme + "'", message);
+    }
+  }
+
   private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
@@ -50,10 +58,18 @@ public class Lox {
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
+    Parser parser = new Parser(tokens);
+    Expr expression = parser.parse();
 
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
+    if (hadError)
+      return;
+
+    System.out.println(expression);
+    System.out.println(new AstPrinter().print(expression));
+
+    // for (Token token : tokens) {
+    // System.out.println(token);
+    // }
   }
 
   private static void runFile(String path) throws IOException {
