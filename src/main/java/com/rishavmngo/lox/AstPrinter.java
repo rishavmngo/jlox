@@ -1,9 +1,12 @@
 package com.rishavmngo.lox;
 
+import com.rishavmngo.lox.Expr.Assign;
 import com.rishavmngo.lox.Expr.Binary;
 import com.rishavmngo.lox.Expr.Grouping;
 import com.rishavmngo.lox.Expr.Literal;
+import com.rishavmngo.lox.Expr.Logical;
 import com.rishavmngo.lox.Expr.Unary;
+import com.rishavmngo.lox.Expr.Variable;
 
 public class AstPrinter implements Expr.Visitor<String> {
 
@@ -56,6 +59,21 @@ public class AstPrinter implements Expr.Visitor<String> {
     builder.append(")");
 
     return builder.toString();
+  }
+
+  @Override
+  public String visitVariableExpr(Variable expr) {
+    throw new UnsupportedOperationException("Unimplemented method 'visitVariableExpr'");
+  }
+
+  @Override
+  public String visitAssignExpr(Assign expr) {
+    throw new UnsupportedOperationException("Unimplemented method 'visitAssignExpr'");
+  }
+
+  @Override
+  public String visitLogicalExpr(Logical expr) {
+    throw new UnsupportedOperationException("Unimplemented method 'visitLogicalExpr'");
   }
 
 }
