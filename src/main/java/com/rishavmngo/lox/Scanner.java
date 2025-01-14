@@ -105,14 +105,20 @@ class Scanner {
           while (peek() != '\n' && !isAtEnd())
             advance();
         } else if (match('*')) {
-          while (peek() != '*' && peekNext() != '/' && !isAtEnd())
+          Boolean foundEnd = false;
+          while (!isAtEnd()) {
+            if (peek() == '*') {
+              advance();
+              if (peek() == '/') {
+                advance();
+                foundEnd = true;
+                break;
+              }
+            }
             advance();
-          if (peek() == '*' && peekNext() == '/') {
-            advance();
-            advance();
-
-          } else {
-            Lox.error(line, "Can't able to find end of comment");
+          }
+          if (!foundEnd) {
+            Lox.error(line, "Can't able to find end of comment!");
 
           }
         } else {

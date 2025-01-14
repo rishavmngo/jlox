@@ -1,13 +1,16 @@
-//   var i; var j; var rows = 5;
-//   for (i = 1; i <= rows; i = i + 1) {
-//      for (j = 1; j <= i; j = j + 1) {
-//         print "* ";
-//      }
-//      print "\\n" ;
-//   }
+/*
+   var i; var j; var rows = 5;
+   for (i = 1; i <= rows; i = i + 1) {
+      for (j = 1; j <= i; j = j + 1) {
+         print "* ";
+      }
+      print "\\n" ;
+   }
+*/
 
 
 
+/*
 fun fib(n) {
   if (n <= 1) return n;
   return fib(n-2) + fib(n-1);
@@ -17,3 +20,7 @@ fun fib(n) {
 for (var i = 0; i < 20; i = i  + 1){
   println(fib(i));
 }
+*/
+
+
+println("hello");
