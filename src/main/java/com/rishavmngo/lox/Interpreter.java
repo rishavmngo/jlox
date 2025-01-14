@@ -1,5 +1,6 @@
 package com.rishavmngo.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.rishavmngo.lox.Expr.Assign;
@@ -11,13 +12,35 @@ import com.rishavmngo.lox.Expr.Unary;
 import com.rishavmngo.lox.Expr.Variable;
 import com.rishavmngo.lox.Stmt.Block;
 import com.rishavmngo.lox.Stmt.Expression;
+import com.rishavmngo.lox.Stmt.Function;
 import com.rishavmngo.lox.Stmt.If;
 import com.rishavmngo.lox.Stmt.Print;
 import com.rishavmngo.lox.Stmt.Var;
 import com.rishavmngo.lox.Stmt.While;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-  private Environment environment = new Environment();
+  Environment globals = new Environment();
+  private Environment environment = globals;
+
+  Interpreter() {
+    globals.define("clock", new LoxCallable() {
+
+      @Override
+      public int arity() {
+        return 0;
+      }
+
+      @Override
+      public Object call(Interpreter interpreter, List<Object> arguments) {
+        return (double) System.currentTimeMillis() / 1000.0;
+      }
+
+      public String toString() {
+        return "<native fn>";
+      }
+
+    });
+  }
 
   void interpret(List<Stmt> statements) {
     try {
@@ -197,7 +220,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 
-  private void executeBlock(List<Stmt> statements, Environment environment) {
+  void executeBlock(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
     try {
       this.environment = environment;
@@ -241,5 +264,40 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       execute(stmt.body);
     }
     return null;
+  }
+
+  @Override
+  public Object visitCallExpr(Expr.Call expr) {
+    Object callee = evaluate(expr.callee);
+    List<Object> arguments = new ArrayList<>();
+    for (Expr argument : expr.arguments) {
+      arguments.add(evaluate(argument));
+    }
+
+    if (!(callee instanceof LoxCallable)) {
+      throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+    }
+    LoxCallable function = (LoxCallable) callee;
+    if (arguments.size() != function.arity()) {
+      throw new RuntimeError(expr.paren,
+          "Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+    }
+    return function.call(this, arguments);
+  }
+
+  @Override
+  public Void visitFunctionStmt(Function stmt) {
+    LoxFunction function = new LoxFunction(stmt);
+    environment.define(stmt.name.lexeme, function);
+    return null;
+  }
+
+  @Override
+  public Void visitReturnStmt(Stmt.Return stmt) {
+    Object value = null;
+    if (stmt.value != null)
+      value = evaluate(stmt.value);
+
+    throw new Return(value);
   }
 }

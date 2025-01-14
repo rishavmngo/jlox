@@ -2,6 +2,7 @@ package com.rishavmngo.lox;
 
 import com.rishavmngo.lox.Expr.Assign;
 import com.rishavmngo.lox.Expr.Binary;
+import com.rishavmngo.lox.Expr.Call;
 import com.rishavmngo.lox.Expr.Grouping;
 import com.rishavmngo.lox.Expr.Literal;
 import com.rishavmngo.lox.Expr.Logical;
@@ -74,6 +75,11 @@ public class AstPrinter implements Expr.Visitor<String> {
   @Override
   public String visitLogicalExpr(Logical expr) {
     throw new UnsupportedOperationException("Unimplemented method 'visitLogicalExpr'");
+  }
+
+  @Override
+  public String visitCallExpr(Call expr) {
+    throw new UnsupportedOperationException("Unimplemented method 'visitCallExpr'");
   }
 
 }
