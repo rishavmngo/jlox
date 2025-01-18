@@ -1,9 +1,12 @@
 class Animal {
   walk(){
-  println "tic tock";
+    println this.key;
+    println this;
   }
 }
 
 
-Animal().walk();
+var animal = Animal();
+animal.key = "tic toc";
+animal.walk();
 

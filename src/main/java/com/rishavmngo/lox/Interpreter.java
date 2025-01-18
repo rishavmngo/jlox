@@ -7,7 +7,6 @@ import java.util.Map;
 
 import com.rishavmngo.lox.Expr.Assign;
 import com.rishavmngo.lox.Expr.Binary;
-import com.rishavmngo.lox.Expr.Get;
 import com.rishavmngo.lox.Expr.Grouping;
 import com.rishavmngo.lox.Expr.Literal;
 import com.rishavmngo.lox.Expr.Logical;
@@ -46,20 +45,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       }
 
     });
-  }
-
-  void interpret(List<Stmt> statements) {
-    try {
-      for (Stmt statement : statements) {
-        execute(statement);
-      }
-    } catch (RuntimeError error) {
-      Lox.runtimeError(error);
-    }
-  }
-
-  private void execute(Stmt stmt) {
-    stmt.accept(this);
   }
 
   @Override
@@ -108,42 +93,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 
-  private void checkNumberOperands(Token operator, Object left, Object right) {
-    if (left instanceof Double && right instanceof Double)
-      return;
-
-    throw new RuntimeError(operator, "Operands must be numbers.");
-  }
-
-  private boolean isEqual(Object a, Object b) {
-    if (a == null && b == null)
-      return true;
-    if (a == null)
-      return false;
-
-    return a.equals(b);
-  }
-
-  private String stringify(Object obj) {
-    if (obj == null)
-      return "nil";
-    if (obj instanceof Double) {
-      String text = obj.toString();
-      if (text.endsWith(".0")) {
-        text = text.substring(0, text.length() - 2);
-      }
-      return text;
-    }
-    return obj.toString();
-  }
-
   @Override
   public Object visitGroupingExpr(Grouping expr) {
     return evaluate(expr.expression);
-  }
-
-  private Object evaluate(Expr expr) {
-    return expr.accept(this);
   }
 
   @Override
@@ -164,21 +116,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     return null;
-  }
-
-  private void checkNumberOperand(Token operator, Object operand) {
-    if (operand instanceof Double)
-      return;
-
-    throw new RuntimeError(operator, "Operand must be a number");
-  }
-
-  private boolean isTruthy(Object object) {
-    if (object == null)
-      return false;
-    if (object instanceof Boolean)
-      return (boolean) object;
-    return true;
   }
 
   @Override
@@ -214,15 +151,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     // return environment.get(expr.name);
   }
 
-  private Object lookUpVariable(Token name, Variable expr) {
-    Integer distance = locals.get(expr);
-    if (distance != null) {
-      return environment.getAt(distance, name.lexeme);
-    } else {
-      return globals.get(name);
-    }
-  }
-
   @Override
   public Object visitAssignExpr(Assign expr) {
     Object value = evaluate(expr.value);
@@ -239,19 +167,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Void visitBlockStmt(Block stmt) {
     executeBlock(stmt.statements, new Environment(environment));
     return null;
-  }
-
-  void executeBlock(List<Stmt> statements, Environment environment) {
-    Environment previous = this.environment;
-    try {
-      this.environment = environment;
-
-      for (Stmt statement : statements) {
-        execute(statement);
-      }
-    } finally {
-      this.environment = previous;
-    }
   }
 
   @Override
@@ -308,7 +223,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitFunctionStmt(Function stmt) {
-    LoxFunction function = new LoxFunction(stmt, environment);
+    LoxFunction function = new LoxFunction(stmt, environment, false);
     environment.define(stmt.name.lexeme, function);
     return null;
   }
@@ -332,7 +247,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Map<String, LoxFunction> methods = new HashMap<>();
 
     for (Stmt.Function method : stmt.methods) {
-      LoxFunction function = new LoxFunction(method, environment);
+      LoxFunction function = new LoxFunction(method, environment, method.name.lexeme.equals("init"));
       methods.put(method.name.lexeme, function);
     }
 
@@ -359,5 +274,94 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object value = evaluate(expr.value);
     ((LoxInstance) object).set(expr.name, value);
     return value;
+  }
+
+  @Override
+  public Object visitThisExpr(Expr.This expr) {
+    return lookUpVariable(expr.keyword, expr);
+  }
+
+  void interpret(List<Stmt> statements) {
+    try {
+      for (Stmt statement : statements) {
+        execute(statement);
+      }
+    } catch (RuntimeError error) {
+      Lox.runtimeError(error);
+    }
+  }
+
+  void executeBlock(List<Stmt> statements, Environment environment) {
+    Environment previous = this.environment;
+    try {
+      this.environment = environment;
+
+      for (Stmt statement : statements) {
+        execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
+  }
+
+  private void execute(Stmt stmt) {
+    stmt.accept(this);
+  }
+
+  private void checkNumberOperands(Token operator, Object left, Object right) {
+    if (left instanceof Double && right instanceof Double)
+      return;
+
+    throw new RuntimeError(operator, "Operands must be numbers.");
+  }
+
+  private boolean isEqual(Object a, Object b) {
+    if (a == null && b == null)
+      return true;
+    if (a == null)
+      return false;
+
+    return a.equals(b);
+  }
+
+  private String stringify(Object obj) {
+    if (obj == null)
+      return "nil";
+    if (obj instanceof Double) {
+      String text = obj.toString();
+      if (text.endsWith(".0")) {
+        text = text.substring(0, text.length() - 2);
+      }
+      return text;
+    }
+    return obj.toString();
+  }
+
+  private Object evaluate(Expr expr) {
+    return expr.accept(this);
+  }
+
+  private void checkNumberOperand(Token operator, Object operand) {
+    if (operand instanceof Double)
+      return;
+
+    throw new RuntimeError(operator, "Operand must be a number");
+  }
+
+  private boolean isTruthy(Object object) {
+    if (object == null)
+      return false;
+    if (object instanceof Boolean)
+      return (boolean) object;
+    return true;
+  }
+
+  private Object lookUpVariable(Token name, Expr expr) {
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      return environment.getAt(distance, name.lexeme);
+    } else {
+      return globals.get(name);
+    }
   }
 }
